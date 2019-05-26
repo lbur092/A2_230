@@ -1,9 +1,19 @@
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.Point;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 import javax.swing.JPanel;
 
 public class GraphPanel extends JPanel {
+
+	int basicX = 50;
+	int xChange = 900;
+	int basicY = 270;
+	int yChange = -250;
+
+	private static final long serialVersionUID = 1L;
 
 	public GraphPanel() {
 		repaint();
@@ -11,22 +21,162 @@ public class GraphPanel extends JPanel {
 	protected void paintComponent(Graphics g) {
 
 		super.paintComponent(g);
-		g.setColor(Color.black);
+
+		//		draw axes.
+
+		g.drawLine(basicX, basicY, basicX, basicY + yChange + 5); // y axis
+		g.drawLine(basicX - 5,  basicY,  basicX + xChange,  basicY); // x axis
+
+		// draw labels
 		g.drawString("Volume [bytes]", 10, 20);
-		g.drawLine(50, 25, 50, 275); // y axis
-		g.drawLine(45,  270,  950,  270); // x axis
 		g.drawString("Time [s]", 490, 310);
-		
-		for(int x1 = 50; x1 <= 950; x1 += 75) {
-			int i = (int) ((x1 - 50) / 1.5); 
-			g.drawLine(x1, 270, x1, 275);
-			g.drawString(Integer.toString(i), x1 - 10, 290);
+
+		//		draw ticks - 4 to 10 y axis, x axis  8 and 24 ticks
+		// variable xTicks
+		//		change colour to red
+		//		draw rectangles
+		//
+
+
+		int maxX = 670;
+
+		int temp = maxX / 10; // will be 65
+		//round down to multiple of 50
+		int xtickinterval;
+		//= (temp / 50) * 50; // will be 50.
+
+		if (maxX < 24 * 1) {
+			xtickinterval = 1;
+		} else if (maxX < 24 * 2) {
+			xtickinterval = 2;
+
+		} else if (maxX < 24 * 5) {
+			xtickinterval = 5;
+		} else if (maxX < 24 * 10) {
+			xtickinterval = 10;
+		} else if (maxX < 24 * 20) {
+			xtickinterval = 20;
+		} else if (maxX < 24 * 50) {
+			xtickinterval = 50;
+		} else {
+			xtickinterval = 100;
+		}
+
+		int ytickinterval;
+		int maxY = 550;
+		if (maxY < 24 * 1) {
+			ytickinterval = 1;
+		} else if (maxY < 24 * 2) {
+			ytickinterval = 2;
+
+		} else if (maxY < 24 * 5) {
+			ytickinterval = 5;
+		} else if (maxY < 24 * 10) {
+			ytickinterval = 10;
+		} else if (maxY < 24 * 20) {
+			ytickinterval = 20;
+		} else if (maxY < 24 * 50) {
+			ytickinterval = 50;
+		} else {
+			ytickinterval = 100;
+		}	
+
+		int numyticks = maxY / ytickinterval;
+		int numxticks = maxX / xtickinterval + 1;
+		System.out.print(numxticks);
+
+		for (int i = 0; i < numyticks; i++) { // y axis ticks
+			int startX = basicX;
+			
+			int x = (int)getGraphicX(0, maxX);
+			int y = (int)getGraphicY(i * ytickinterval, maxY);
+			//tick 
+			g.drawLine(x, y, x - 5, y);
+
+			// label - 5 below the ticks 
+			g.drawString("" + i * ytickinterval, x - 40, y + 5) ; // 40 to the left, 5 below.
 		}
 		
-		
-			g.drawString("0", 15, 270);
+		for (int i = 0; i < numxticks; i++) { // x ticks
+
+			int y = (int)getGraphicY(0, maxY);
+			int x = (int)getGraphicX(i * xtickinterval, maxX);
+			//ticks
+			g.drawLine(x, y, x, y + 5) ;
+
+			//labels
+			g.drawString("" + i * xtickinterval, x - 10, y + 20) ; // 10 to the left, 20 below
+
 		}
-		
+
 
 	}
+
+	public void plotGraph(Host host, ArrayList<Packet> packetlist) {
+
+	}
+
+	public static void getGraphData(ArrayList<Packet> packets, String ipFilter, boolean isSrcHost, double endTime, int interval) {
+		int slots = (int)Math.ceil(endTime / interval);
+		double[] timeArray = new double[slots];
+		double[] byteArray = new double[slots];
+		for(Packet packet: packets) {
+			// System.out.println(ipFilter);
+
+			if(isSrcHost && (packet.getSourceHost().equals(ipFilter)) || !isSrcHost && (packet.getDestinationHost().equals(ipFilter))) {
+				// System.out.println("if clause");
+				int slot= (int)Math.floor(packet.getTimeStamp() / interval);
+
+				byteArray[slot] += packet.getIpPacketSize();
+			}
+
+
+
+
+		}
+		for(int i = 0; i < slots; i++) {
+			timeArray[i] = interval * (i+1);
+		}
+
+		System.out.println(Arrays.toString(timeArray));
+
+		System.out.println(Arrays.toString(byteArray));
+
+		// starting here
+
+		double maxbytes = 0;
+		for(double bytes : byteArray) {
+			if (bytes > maxbytes) {
+				maxbytes = bytes;
+			}
+		}
+
+		double maxtime = endTime;
+	}
+
+	public void redrawCoordinates(double maxX, double maxY) {
+
+	}
+
+
+	public double getGraphicX(double actualX, double maxX) {
+		int basicX = 50;
+		int xChange = 900;
+		int endX = basicX + xChange;
+		double graphicX = (actualX / maxX) * xChange + basicX;
+
+		return graphicX;
+
+	}
+	public double getGraphicY(double actualY, double maxY) {
+		int basicY = 270;
+		int yChange = -250;
+		int endY = basicY + yChange;
+
+		double graphicY = (actualY / maxY) * yChange + basicY;
+		return graphicY;
+	}
+
+
+}
 

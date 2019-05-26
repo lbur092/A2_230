@@ -1,11 +1,10 @@
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -18,102 +17,120 @@ import javax.swing.*;
 import javax.swing.SwingUtilities;
 
 public class A2 extends JFrame {
-	
-	
-	/**
-	 * 
-	 */
+
+
 	private static final long serialVersionUID = 1L;
 
+	private Object[] srcHosts;
+	private Object[] destHosts;
+	JRadioButton source_hosts_button;
+	JRadioButton destination_hosts_button;
+	JComboBox<String> ipComboBox;
+
 	public A2() {
-		
-	getContentPane().setLayout(null);
-		
-		
-		
+
+
 		JMenuBar menuBar = new JMenuBar();
 		setJMenuBar(menuBar);
 		JMenu fileMenu = new JMenu("File");
 		menuBar.add(fileMenu);
 		JMenuItem fileMenuOpen = new JMenuItem("Open");
-		JMenuItem fileMenuQuit = new JMenuItem("Quit");
 		fileMenu.add(fileMenuOpen);
-		fileMenu.add(fileMenuQuit);
-		
-		fileMenuQuit.addActionListener(new ActionListener() {
-		
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				System.exit(0);
-				
-			}
-			
-		});
-		
-		fileMenuOpen.addActionListener(new ActionListener() {
-			
-			@Override
-			public void actionPerformed(ActionEvent e) {
 
-				JFileChooser chooser = new JFileChooser();
-				int returnValue = chooser.showOpenDialog(A2.this);
-				File trace_file_path = null;
-				
-				if(returnValue == JFileChooser.APPROVE_OPTION) {
-					trace_file_path = chooser.getSelectedFile();
-					openFile(trace_file_path);
-				} 
-				
-								
-			}
-			
-		});		
+		JMenuItem fileMenuQuit = new JMenuItem("Quit");
+		fileMenu.add(fileMenuQuit);
+
+
 		JPanel hostsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
 		hostsPanel.setSize(200, 100);
 		hostsPanel.setBackground(Color.ORANGE);
-		
-		
-		JRadioButton source_hosts_button = new JRadioButton();
+
+
+		source_hosts_button = new JRadioButton();
 		source_hosts_button.setText("Source hosts");
-	
-		JRadioButton destination_hosts_button = new JRadioButton();
+
+		destination_hosts_button = new JRadioButton();
 		destination_hosts_button.setText("Destination hosts");
-		
+
 		ButtonGroup hosts_group = new ButtonGroup();
 		hosts_group.add(source_hosts_button);
 		hosts_group.add(destination_hosts_button);
 
 		hostsPanel.add(source_hosts_button);
 		hostsPanel.add(destination_hosts_button);
-		
+
 		source_hosts_button.setSelected(true);
-		
-		JPanel addressesPanel = new JPanel();
-		
-		String[] dummyvalues = {"Hello"};
-		JComboBox<String> ipComboBox = new JComboBox<String>(dummyvalues);
-		addressesPanel.add(ipComboBox);
-		
-		addressesPanel.setLocation(500, 25);
-		addressesPanel.setSize(100, 50);
-		//ipComboBox.setLocation(500, 50);
-	
-		getContentPane().add(hostsPanel);
-		hostsPanel.setLocation(0, 0);//not working
+
+
+		//	String[] dummyvalues = {"Hello"};
+		ipComboBox = new JComboBox<String>();
+		hostsPanel.add(ipComboBox);
+		ipComboBox.setVisible(false);
+
+		getContentPane().add(hostsPanel, BorderLayout.NORTH);
 		hostsPanel.setSize(200, 100);;
-		
-		
-		
+
+
+
 		GraphPanel graphPanel = new GraphPanel();
-		getContentPane().add(graphPanel);
+		getContentPane().add(graphPanel, BorderLayout.CENTER);
 		graphPanel.setBackground(Color.yellow);
-		graphPanel.setLocation(0,  100);
 		graphPanel.setSize(1000, 325);
-		
-//		JButton b = new JButton("Hello world");
-//		this.add(b);
-//		b.setLocation(600, 20);
-//		
+
+		fileMenuQuit.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				System.exit(0);
+
+			}
+
+		});
+
+		fileMenuOpen.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+
+				JFileChooser chooser = new JFileChooser();
+				int returnValue = chooser.showOpenDialog(A2.this);
+				File f = null;
+
+				if(returnValue == JFileChooser.APPROVE_OPTION) {
+					f = chooser.getSelectedFile();
+					ArrayList<Packet> packets = createValidPacketList(f);
+
+					srcHosts = getUniqueSortedSourceHosts(packets);
+					destHosts = getUniqueSortedDestHosts(packets);
+
+					ipComboBox.setVisible(true);
+					populateComboBox();
+				}
+			}
+
+
+
+
+
+
+
+		});	
+
+		source_hosts_button.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				populateComboBox();
+
+			}
+
+		});
+		destination_hosts_button.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				populateComboBox();
+
+			}
+
+		});
+
 		//general setup
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setTitle("Network Packet Transmission Visualizer");
@@ -121,8 +138,8 @@ public class A2 extends JFrame {
 		setVisible(true);
 		getContentPane().revalidate();
 		getContentPane().repaint();
-		
-		
+
+
 	}
 
 	public static void main(String[] args) {
@@ -131,80 +148,120 @@ public class A2 extends JFrame {
 		SwingUtilities.invokeLater(new Runnable() { //anonymous class implementing Runnable
 			public void run() {
 				new A2();
-				
+
 			}
 		});
 	}
-	public void openFile(File trace_file_path) {
-		Set<IPAddress> sourceIpAddressSet = new HashSet<IPAddress>();
-		Set<IPAddress> destIpAddressSet = new HashSet<IPAddress>();
-		
+
+	public static ArrayList<Packet> createValidPacketList(File f) {
+
+		ArrayList<Packet> packetlist = new ArrayList<Packet>();
 		Scanner input = null;
-		String currentLine = "";
+		String line = "";
+		Pattern ippattern = Pattern.compile("\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}");
+
 		try {
-			input = new Scanner(trace_file_path);
+			input = new Scanner(f);
 		}
 		catch(IOException e1) {
 			// thrown if file doesn't exist or isn't readable
-			return;
+			System.out.printf("%s (The system cannot find the file specified)", f.toString());
+			return packetlist;
 		}
+
+
 		while(input.hasNext() ) {
-			currentLine = input.nextLine();
-			
-			// NOW I NEED TO SPLIT ON TAB
-			String[] tabPart = currentLine.split("\\t");
-			System.out.println(tabPart[0]);
-			
-			String srcaddress = tabPart[2];
-			String destaddress = tabPart[4];
-			IPAddress sourceIpAddress = null;
-			IPAddress destIpAddress = null;
-			
-			if(srcaddress != "")  {
-				sourceIpAddress = new IPAddress(srcaddress);
+			line = input.nextLine();
+			//	System.out.println(line);
+			Packet linepacket = new Packet(line);
+			Matcher m = ippattern.matcher(line);
+			String ipstring = "";
+			if(m.find()) {
+				ipstring = m.group(0);
+				packetlist.add(linepacket);
 			}
-			 
-			if(destaddress != "") {
-				destIpAddress = new IPAddress(destaddress);
+			//	System.out.println(ipstring);
 
-			} 					
-			ArrayList<IPAddress> addresslist = new ArrayList<IPAddress>();
-
-			addresslist.add(sourceIpAddress);
-			destIpAddressSet.add(destIpAddress);
-			
-			Collections.sort(addresslist);
-			
-			// need to pop combo box
-			//ipComboBox.addItem(destIpAddress);
-			//ipComboBox.setVisible(true);
-
-			
 		}
-		
-//		
-//		String fileContents = Files.readAllLines(trace_file_path.getAbsolutePath())
-//		
-		// We have a line with a series of numbers separated by tabs
-		// want to split for 192.168.0.20 or for 10.0.0.2
-		currentLine.split("192.168.*");
-		//compile regex and get next occurrence
-		
-		Pattern sourcePattern = Pattern.compile("192\\.168\\.0\\.*");
-		Pattern destinationPattern = Pattern.compile("10\\.0\\.*\\.*");
-		Matcher sm = sourcePattern.matcher(currentLine);
-		Matcher dm = sourcePattern.matcher(currentLine);
-
+		//			System.out.println("Here");
+		//System.out.println(packetlist.size());
 		input.close();
-
-
+		return packetlist;
 	}
-	
+
+
+
+
 	public void updateAddressList(boolean hosttype) {
 		// 0 - source, 1 - destination
 		// get saved list 
 		// set contents of combo box
-		
+
 	}
+
+	public static Object[] getUniqueSortedSourceHosts(ArrayList<Packet> packets) {
+		HashSet<String> set = new HashSet<String>();
+		Pattern ippattern = Pattern.compile("\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}");
+
+		for(Packet packet : packets){
+			Matcher m = ippattern.matcher(packet.getSourceHost());
+			String sourceHost = "";
+			if(m.find()) {
+				sourceHost = m.group(0);
+				set.add(sourceHost);
+			}
+		}
+		ArrayList<Host> list = new ArrayList<Host>();
+
+		for(String sourceHost : set) {
+			Host host = new Host(sourceHost);
+			list.add(host);
+		}
+
+		Collections.sort(list);    
+		return list.toArray();
+	}
+
+	public static Object[] getUniqueSortedDestHosts(ArrayList<Packet> packets) {
+		HashSet<String> set = new HashSet<String>();
+		Pattern ippattern = Pattern.compile("\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}");
+
+		for(Packet packet : packets){
+			Matcher m = ippattern.matcher(packet.getDestinationHost());
+			String destHost = "";
+			if(m.find()) {
+				destHost = m.group(0);
+				set.add(destHost);
+			}
+		}
+		ArrayList<Host> list = new ArrayList<Host>();
+
+		for(String destHost : set) {
+			Host host = new Host(destHost);
+			list.add(host);
+		}
+
+		Collections.sort(list);    
+		return list.toArray();
+	}
+
+	private void populateComboBox() {
+		if(source_hosts_button.isSelected()) {
+						if(srcHosts != null) {
+			ipComboBox.setModel(new DefaultComboBoxModel(srcHosts));
+
+						}
+
+		} else {
+			if(destHosts != null) {
+
+				ipComboBox.setModel(new DefaultComboBoxModel(destHosts));
+			}
+
+		}
+
+
+	} 
+
 
 }
