@@ -26,7 +26,9 @@ public class A2 extends JFrame {
 	JRadioButton source_hosts_button;
 	JRadioButton destination_hosts_button;
 	JComboBox<String> ipComboBox;
-
+	
+	ArrayList<Packet> packets;
+	
 	public A2() {
 
 
@@ -98,13 +100,15 @@ public class A2 extends JFrame {
 
 				if(returnValue == JFileChooser.APPROVE_OPTION) {
 					f = chooser.getSelectedFile();
-					ArrayList<Packet> packets = createValidPacketList(f);
+					packets = createValidPacketList(f);
 
 					srcHosts = getUniqueSortedSourceHosts(packets);
 					destHosts = getUniqueSortedDestHosts(packets);
 
 					ipComboBox.setVisible(true);
 					populateComboBox();
+					graphPanel.update(packets, ipComboBox.getSelectedItem().toString(), source_hosts_button.isSelected(), calculateEndTime());
+					
 				}
 			}
 
@@ -119,6 +123,11 @@ public class A2 extends JFrame {
 		source_hosts_button.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				populateComboBox();
+				if(packets != null) {
+					graphPanel.update(packets, ipComboBox.getSelectedItem().toString(), source_hosts_button.isSelected(), calculateEndTime());
+	
+				}
+				
 
 			}
 
@@ -126,9 +135,22 @@ public class A2 extends JFrame {
 		destination_hosts_button.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				populateComboBox();
+				if(packets != null) {
+					graphPanel.update(packets, ipComboBox.getSelectedItem().toString(), source_hosts_button.isSelected(), calculateEndTime());
 
+				}
+				
 			}
 
+		});
+		
+		ipComboBox.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if(packets != null) {
+					graphPanel.update(packets, ipComboBox.getSelectedItem().toString(), source_hosts_button.isSelected(), calculateEndTime());
+
+				}
+			}
 		});
 
 		//general setup
@@ -263,5 +285,18 @@ public class A2 extends JFrame {
 
 	} 
 
+	public double calculateEndTime() {
+		double endTime = 0;
+		if(packets != null) {
+			for(Packet packet : packets) {
+				if (packet.getTimeStamp() > endTime) {
+					endTime = packet.getTimeStamp();
+				}
+				
+			}
+		}
+		
+	return endTime;
+	}
 
 }

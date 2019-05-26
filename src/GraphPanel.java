@@ -3,6 +3,7 @@ import java.awt.Graphics;
 import java.awt.Point;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Scanner;
 
 import javax.swing.JPanel;
 
@@ -10,8 +11,13 @@ public class GraphPanel extends JPanel {
 
 	int basicX = 50;
 	int xChange = 900;
-	int basicY = 270;
+	int basicY = 300;
 	int yChange = -250;
+	double interval = 2;
+	static double[] timeArray = {};
+	static double[] byteArray = {};
+	static double maxX = 600;
+	static double maxY = 500;
 
 	private static final long serialVersionUID = 1L;
 
@@ -24,24 +30,18 @@ public class GraphPanel extends JPanel {
 
 		//		draw axes.
 
-		g.drawLine(basicX, basicY, basicX, basicY + yChange + 5); // y axis
+		g.drawLine(basicX, basicY, basicX, basicY + yChange); // y axis
 		g.drawLine(basicX - 5,  basicY,  basicX + xChange,  basicY); // x axis
 
 		// draw labels
 		g.drawString("Volume [bytes]", 10, 20);
-		g.drawString("Time [s]", 490, 310);
+		g.drawString("Time [s]", 490, basicY + 40);
 
+		Scanner s = new Scanner(System.in);
 		//		draw ticks - 4 to 10 y axis, x axis  8 and 24 ticks
-		// variable xTicks
-		//		change colour to red
-		//		draw rectangles
-		//
 
 
-		int maxX = 670;
 
-		int temp = maxX / 10; // will be 65
-		//round down to multiple of 50
 		int xtickinterval;
 		//= (temp / 50) * 50; // will be 50.
 
@@ -63,63 +63,133 @@ public class GraphPanel extends JPanel {
 		}
 
 		int ytickinterval;
-		int maxY = 550;
-		if (maxY < 24 * 1) {
-			ytickinterval = 1;
-		} else if (maxY < 24 * 2) {
-			ytickinterval = 2;
 
-		} else if (maxY < 24 * 5) {
-			ytickinterval = 5;
-		} else if (maxY < 24 * 10) {
-			ytickinterval = 10;
-		} else if (maxY < 24 * 20) {
-			ytickinterval = 20;
-		} else if (maxY < 24 * 50) {
-			ytickinterval = 50;
+		double temp = maxY;
+		int poweroften = 1;
+		while(temp > 10) {
+			temp = temp / 10;
+			poweroften = poweroften * 10;
+		}
+
+		poweroften = poweroften / 10;
+		if (temp < 2) {
+			ytickinterval = poweroften;
+		} else if (temp < 5) {
+			ytickinterval = poweroften * 2; 
 		} else {
-			ytickinterval = 100;
-		}	
+			ytickinterval = poweroften * 5;
+		}
+////		
+////
+////	} else if (maxY < 24 * 5) {
+////		ytickinterval = 5;
+////	} else if (maxY < 24 * 10) {
+////		ytickinterval = 10;
+////	} else if (maxY < 24 * 20) {
+////		ytickinterval = 20;
+////	} else if (maxY < 24 * 50) {
+////		ytickinterval = 50;
+////	} else {
+////		ytickinterval = 100;
+////	}	
+////
+////	if (maxY < 24 * 1) {
+////		ytickinterval = 1;
+////	} else if (maxY < 24 * 2) {
+////		ytickinterval = 2;
+////
+////	} else if (maxY < 24 * 5) {
+////		ytickinterval = 5;
+////	} else if (maxY < 24 * 10) {
+////		ytickinterval = 10;
+////	} else if (maxY < 24 * 20) {
+////		ytickinterval = 20;
+////	} else if (maxY < 24 * 50) {
+////		ytickinterval = 50;
+////	} else {
+////		ytickinterval = 100;
+////	}	
+//
+	int numyticks = (int) maxY / ytickinterval + 1;
+	int numxticks = (int) maxX / xtickinterval + 1;
+	
+	System.out.printf("maxY %f\n", maxY);
 
-		int numyticks = maxY / ytickinterval;
-		int numxticks = maxX / xtickinterval + 1;
-		System.out.print(numxticks);
+	for (int i = 0; i < numyticks; i++) { // y axis ticks
+		int startX = basicX;
 
-		for (int i = 0; i < numyticks; i++) { // y axis ticks
-			int startX = basicX;
-			
-			int x = (int)getGraphicX(0, maxX);
-			int y = (int)getGraphicY(i * ytickinterval, maxY);
-			//tick 
-			g.drawLine(x, y, x - 5, y);
+		int x = (int)getGraphicX(0, maxX);
+		int y = (int)getGraphicY(i * ytickinterval, maxY);
+		//tick 
+		g.drawLine(x, y, x - 5, y);
 
-			// label - 5 below the ticks 
+		// label - 5 below the ticks 
+		if(ytickinterval > 1000) {
+			g.drawString(i * ytickinterval / 1000 + "k", x - 40, y + 5) ; // 40 to the left, 5 below.
+
+		} else {
 			g.drawString("" + i * ytickinterval, x - 40, y + 5) ; // 40 to the left, 5 below.
-		}
-		
-		for (int i = 0; i < numxticks; i++) { // x ticks
-
-			int y = (int)getGraphicY(0, maxY);
-			int x = (int)getGraphicX(i * xtickinterval, maxX);
-			//ticks
-			g.drawLine(x, y, x, y + 5) ;
-
-			//labels
-			g.drawString("" + i * xtickinterval, x - 10, y + 20) ; // 10 to the left, 20 below
 
 		}
+	}
 
+
+
+
+	for (int i = 0; i < numxticks; i++) { // x ticks
+
+		int x = (int)getGraphicX(i * xtickinterval, maxX);
+
+		int y = (int)getGraphicY(0, maxY);
+		//ticks
+		g.drawLine(x, y, x, y + 5) ;
+
+		//labels
+		g.drawString("" + i * xtickinterval, x - 10, y + 20) ; // 10 to the left, 20 below
 
 	}
 
-	public void plotGraph(Host host, ArrayList<Packet> packetlist) {
 
+
+	// draw rectangles
+	g.setColor(Color.red);
+
+	if(byteArray != null) {
+		int width = (int) (xChange / maxX * 2);
+		for(int i = 0; i < byteArray.length; i++) {
+			// for i in range (0 to bytearray.length)
+			int leftside = getGraphicX(timeArray[i] - interval ,  maxX);
+			int height = (int)(byteArray[i] * -1 * yChange / maxY);
+			int top = basicY - height; // - height in future
+
+
+			//drawRect(Left, top, 
+			g.drawRect(leftside, top, width, height);
+
+
+//			System.out.printf("leftside %d\n", leftside);
+//			System.out.printf("top %d\n", leftside);
+//			System.out.printf("height %d\n", height);
+//			System.out.printf("width %d\n", width);
+
+			// width will be 2? 		
+
+		}
 	}
 
-	public static void getGraphData(ArrayList<Packet> packets, String ipFilter, boolean isSrcHost, double endTime, int interval) {
-		int slots = (int)Math.ceil(endTime / interval);
-		double[] timeArray = new double[slots];
-		double[] byteArray = new double[slots];
+
+}
+
+public void plotGraph(Host host, ArrayList<Packet> packetlist) {
+
+}
+
+public void update(ArrayList<Packet> packets, String ipFilter, boolean isSrcHost, double endTime) {
+	maxX = endTime + interval;
+	int slots = (int)Math.ceil(endTime / interval);
+	timeArray = new double[slots];
+	byteArray = new double[slots];
+	if(packets != null) {
 		for(Packet packet: packets) {
 			// System.out.println(ipFilter);
 
@@ -130,52 +200,42 @@ public class GraphPanel extends JPanel {
 				byteArray[slot] += packet.getIpPacketSize();
 			}
 
-
-
-
 		}
-		for(int i = 0; i < slots; i++) {
-			timeArray[i] = interval * (i+1);
+	}
+
+	for(int i = 0; i < slots; i++) {
+		timeArray[i] = interval * (i+1);
+	}
+
+//	System.out.println(Arrays.toString(timeArray));
+
+//	System.out.println(Arrays.toString(byteArray));
+
+	// starting here
+maxY = 0;
+	for(double bytes : byteArray) {
+		if (bytes > maxY) {
+			maxY = bytes;
 		}
-
-		System.out.println(Arrays.toString(timeArray));
-
-		System.out.println(Arrays.toString(byteArray));
-
-		// starting here
-
-		double maxbytes = 0;
-		for(double bytes : byteArray) {
-			if (bytes > maxbytes) {
-				maxbytes = bytes;
-			}
-		}
-
-		double maxtime = endTime;
 	}
 
-	public void redrawCoordinates(double maxX, double maxY) {
+	repaint();
+}
 
-	}
 
+public int getGraphicX(double actualX, double maxX) {
+	int endX = basicX + xChange;
+	double graphicX = (actualX / maxX) * xChange + basicX;
 
-	public double getGraphicX(double actualX, double maxX) {
-		int basicX = 50;
-		int xChange = 900;
-		int endX = basicX + xChange;
-		double graphicX = (actualX / maxX) * xChange + basicX;
+	return (int)graphicX;
 
-		return graphicX;
+}
+public int getGraphicY(double actualY, double maxY) {
+	int endY = basicY + yChange;
 
-	}
-	public double getGraphicY(double actualY, double maxY) {
-		int basicY = 270;
-		int yChange = -250;
-		int endY = basicY + yChange;
-
-		double graphicY = (actualY / maxY) * yChange + basicY;
-		return graphicY;
-	}
+	double graphicY = (actualY / maxY) * yChange + basicY;
+	return (int)graphicY;
+}
 
 
 }
