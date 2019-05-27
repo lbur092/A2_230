@@ -203,9 +203,7 @@ public class A2 extends JFrame {
 			line = input.nextLine();
 			Packet linepacket = new Packet(line);
 			Matcher m = ippattern.matcher(line);
-			String ipstring = "";
 			if(m.find()) {
-				ipstring = m.group(0);
 				packetlist.add(linepacket);
 			}
 
@@ -276,9 +274,9 @@ public class A2 extends JFrame {
 	}
 
 	/**
-	 * Called when the ip addresses combo box needs to be updated. It checks if the source, or destination hosts radio button
+	 * Called when the IP addresses combo box needs to be updated. It checks if the source, or destination hosts radio button
 	 * is selected, and creates a new ComboBoxModel using the appropriate array of hosts. It will only attempt to update if the 
-	 * respective array has been initialised.
+	 * respective array has been initialized.
 	 * 	 */
 	private void populateComboBox() {
 		if(source_hosts_button.isSelected()) {

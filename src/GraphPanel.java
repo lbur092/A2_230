@@ -47,7 +47,6 @@ public class GraphPanel extends JPanel {
 		g.drawString("Volume [bytes]", 10, 20);
 		g.drawString("Time [s]", 490, basicY + 40);
 
-		Scanner s = new Scanner(System.in);
 		//		draw ticks - 4 to 10 y axis, x axis  8 to 24 ticks
 
 
@@ -93,10 +92,9 @@ public class GraphPanel extends JPanel {
 		int numyticks = (int) maxY / ytickinterval + 1;
 		int numxticks = (int) maxX / xtickinterval + 1;
 
-		System.out.printf("maxY %f\n", maxY);
+		//System.out.printf("maxY %f\n", maxY);
 
 		for (int i = 0; i < numyticks; i++) { // y axis ticks
-			int startX = basicX;
 
 			int x = (int)getGraphicX(0, maxX);
 			int y = (int)getGraphicY(i * ytickinterval, maxY);
@@ -219,7 +217,6 @@ public class GraphPanel extends JPanel {
 	 * @return      integer x value corresponding to JPanel graphics coordinates
 	 */
 	public int getGraphicX(double actualX, double maxX) {
-		int endX = basicX + xChange;
 		double graphicX = (actualX / maxX) * xChange + basicX;
 
 		return (int)graphicX;
@@ -233,8 +230,7 @@ public class GraphPanel extends JPanel {
 	 * @return      Returns y value corresponding to JPanel graphics coordinates
 	 */
 	public int getGraphicY(double actualY, double maxY) {
-		int endY = basicY + yChange;
-
+	
 		double graphicY = (actualY / maxY) * yChange + basicY;
 		return (int)graphicY;
 	}
