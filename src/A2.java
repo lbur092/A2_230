@@ -25,7 +25,7 @@ public class A2 extends JFrame {
 	private Object[] destHosts;
 	JRadioButton source_hosts_button;
 	JRadioButton destination_hosts_button;
-	JComboBox<String> ipComboBox;
+	JComboBox<Object> ipComboBox;
 
 	ArrayList<Packet> packets;
 
@@ -64,7 +64,7 @@ public class A2 extends JFrame {
 		source_hosts_button.setSelected(true);
 
 
-		ipComboBox = new JComboBox<String>();
+		ipComboBox = new JComboBox<Object>();
 		hostsPanel.add(ipComboBox);
 		ipComboBox.setVisible(false);
 
@@ -281,13 +281,13 @@ public class A2 extends JFrame {
 	private void populateComboBox() {
 		if(source_hosts_button.isSelected()) {
 			if(srcHosts != null) {
-				ipComboBox.setModel(new DefaultComboBoxModel(srcHosts));
+				ipComboBox.setModel(new DefaultComboBoxModel<Object>(srcHosts));
 
 			}
 
 		} else {
 			if(destHosts != null) {
-				ipComboBox.setModel(new DefaultComboBoxModel(destHosts));
+				ipComboBox.setModel(new DefaultComboBoxModel<Object>(destHosts));
 			}
 
 		}
